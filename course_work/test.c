@@ -4,24 +4,51 @@
 #include <string.h>
 #include <stdlib.h>
 
+void draw_box(int left_pos_field, int upper_pos_field, int right_pos_field, int lower_pos_field);
 int gotoXY(int x, int y);
 
-int main()
+#define COLLS   200
+#define ROWS    50
+
+int main(int argc, char* argv[])
 {
+    if(getenv("IN_XTERM") == NULL)
+    {
+        char cmd[256];
+        snprintf(cmd, sizeof(cmd), "xterm -ti vt100 -font fixed -geometry %dx%d -e env IN_XTERM=1 %s", COLLS, ROWS, argv[0]);
+        system(cmd);
+        return 0;
+    }
     struct winsize s;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &s);
-    // printf("width = %d\n", s.ws_col);
-    // printf("heigh = %d\n", s.ws_row);
-    if(s.ws_row < 15 || s.ws_col < 100)
-    {
-        perror("The window is too small\n");
-        exit(1);
-    }
-    int left_pos_field = 25;
-    int right_pos_field = s.ws_col - 25;
+    int left_pos_field = 15;
+    int right_pos_field = s.ws_col - 15;
     int lower_pos_field = s.ws_row;
     int upper_pos_field = 3;
+    while(1)
+    {
+        draw_box(left_pos_field, upper_pos_field, right_pos_field, lower_pos_field);
+    }
     
+    return 0;
+}
+
+int gotoXY(int x, int y)
+{
+    if (x < 1 || y < 1)
+    {
+      fprintf (stderr, "This position for printig is not exist.\n");
+      return -1;
+    }
+    char buffer[30];
+    int length = sprintf (buffer, "\033[%d;%dH", y, x);
+
+    write(STDOUT_FILENO, buffer, length);
+    return 0;
+}
+
+void draw_box(int left_pos_field, int upper_pos_field, int right_pos_field, int lower_pos_field)
+{
     write(STDOUT_FILENO, "\e(0", strlen("\e(0"));
     write(STDOUT_FILENO, "\e[2J\e[H", 6);
     gotoXY(left_pos_field, upper_pos_field);
@@ -57,19 +84,4 @@ int main()
     write(STDOUT_FILENO, "j", 1);
     write(STDOUT_FILENO, "\n", 1);
     write(STDOUT_FILENO, "\e(B", strlen ("\e(B"));
-    return 0;
-}
-
-int gotoXY(int x, int y)
-{
-    if (x < 1 || y < 1)
-    {
-      fprintf (stderr, "This position for printig is not exist.\n");
-      return -1;
-    }
-    char buffer[30];
-    int length = sprintf (buffer, "\033[%d;%dH", y, x);
-
-    write(STDOUT_FILENO, buffer, length);
-    return 0;
 }
