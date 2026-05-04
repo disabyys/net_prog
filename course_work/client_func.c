@@ -2,7 +2,6 @@
 
 void draw_box(int left_pos_field, int upper_pos_field, int right_pos_field,
               int lower_pos_field) {
-  write(STDOUT_FILENO, "\e[2J\e[H", 6);
   gotoXY(left_pos_field, upper_pos_field);
   write(STDOUT_FILENO, "l", 1);
   for (int i = left_pos_field + 1; i < right_pos_field; i++) {

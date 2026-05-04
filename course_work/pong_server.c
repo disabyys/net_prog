@@ -104,6 +104,8 @@ int main()
         }
         enum collisions collision = check_wall_collision(state);
         update_ball_position(collision, &state);
+        state.pos_obj.ball_pos_x += state.pos_obj.ball_v_x;
+        state.pos_obj.ball_pos_y += state.pos_obj.ball_v_y;
         if(state.score1 == MAX_SCORE || state.score2 == MAX_SCORE)
         {
             printf("Player %d won!\n", (state.score1 == MAX_SCORE) ? 1 : 2);

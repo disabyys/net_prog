@@ -49,7 +49,6 @@ void* draw_handler(void* arg)
     int right_pos_field = s.ws_col - INDENT_HOR_WALLS;
     int lower_pos_field = s.ws_row;
     int upper_pos_field = 0;
-    struct position_objects_t pos;
     while(1)
     {
         if(recv(sock_client, &pos, sizeof(pos), (intptr_t)NULL) == -1)
@@ -65,7 +64,6 @@ void* draw_handler(void* arg)
         draw_racket(pos.racketx[0], pos.rackety[0]);
         draw_racket(pos.racketx[1], pos.rackety[1]);
         fflush(stdout);
-        usleep(30000);
     }
 }
 

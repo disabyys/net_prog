@@ -2,13 +2,12 @@
 
 void init_field(struct game_state* state, int score1, int score2)
 {
-    int ball_v_x = 1 + rand() % ROWS;
-    int temp = rand() % 3;
-    int ball_v_y = (temp == 0) ? -2 : ((temp == 1) ? 0 : 2);
+    int ball_v_x = (rand() % 2 == 0) ? -2 : 2;
+    int ball_v_y = (rand() % 2 == 0) ? -1 : 1;
     state->pos_obj.ball_pos_x = COLLS / 2;
-    state->pos_obj.ball_pos_y = ball_v_x;
-    state->pos_obj.ball_v_x = ball_v_y;
-    state->pos_obj.ball_v_y = -1 + rand() % 3;
+    state->pos_obj.ball_pos_y = 1 + (rand() % (ROWS - 1));
+    state->pos_obj.ball_v_x = ball_v_x;
+    state->pos_obj.ball_v_y = ball_v_y;
     state->pos_obj.racketx[0] = INDENT_HOR_WALLS + OFFSET_RACKETS;
     state->pos_obj.racketx[1] = COLLS - INDENT_HOR_WALLS - OFFSET_RACKETS;
     state->pos_obj.rackety[0] = state->pos_obj.rackety[1] = ROWS / 2;
@@ -46,12 +45,12 @@ enum collisions check_wall_collision(struct game_state state)
 {
     if(state.pos_obj.ball_pos_x == INDENT_HOR_WALLS + OFFSET_RACKETS - 1){ return PLAYER_2_HIT; }
     else if(state.pos_obj.ball_pos_x == COLLS - INDENT_HOR_WALLS - OFFSET_RACKETS + 1) { return PLAYER_1_HIT; }
-    else if((state.pos_obj.ball_pos_x - 1 == state.pos_obj.racketx[0]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[0])) { return RACKET_1_CENTRE; }
-    else if((state.pos_obj.ball_pos_x + 1 == state.pos_obj.racketx[1]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[1])) { return RACKET_2_CENTRE; }
-    else if((state.pos_obj.ball_pos_x - 1 == state.pos_obj.racketx[0]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[0] + 1)) { return RACKET_1_UPPER; }
-    else if((state.pos_obj.ball_pos_x + 1 == state.pos_obj.racketx[1]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[1] + 1)) { return RACKET_2_UPPER; }
-    else if((state.pos_obj.ball_pos_x - 1 == state.pos_obj.racketx[0]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[0] - 1)) { return RACKET_1_BOTTOM; }
-    else if((state.pos_obj.ball_pos_x + 1 == state.pos_obj.racketx[1]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[1] - 1)) { return RACKET_2_BOTTOM; }
+    else if((state.pos_obj.ball_pos_x - 2 == state.pos_obj.racketx[0]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[0])) { return RACKET_1_CENTRE; }
+    else if((state.pos_obj.ball_pos_x + 2 == state.pos_obj.racketx[1]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[1])) { return RACKET_2_CENTRE; }
+    else if((state.pos_obj.ball_pos_x - 2 == state.pos_obj.racketx[0]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[0] + 1)) { return RACKET_1_UPPER; }
+    else if((state.pos_obj.ball_pos_x + 2 == state.pos_obj.racketx[1]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[1] + 1)) { return RACKET_2_UPPER; }
+    else if((state.pos_obj.ball_pos_x - 2 == state.pos_obj.racketx[0]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[0] - 1)) { return RACKET_1_BOTTOM; }
+    else if((state.pos_obj.ball_pos_x + 2 == state.pos_obj.racketx[1]) && (state.pos_obj.ball_pos_y == state.pos_obj.rackety[1] - 1)) { return RACKET_2_BOTTOM; }
     else if(state.pos_obj.ball_pos_y == 1) { return UPPER_WALL; }
     else if(state.pos_obj.ball_pos_y == ROWS - 1) { return BOTTOM_WALL; }
     else { return NO_COLLISION; }
@@ -64,22 +63,22 @@ void update_ball_position(enum collisions ball_col, struct game_state* state)
         state->pos_obj.ball_v_y = (ball_col == UPPER_WALL) ? -1 : 1;
         return;
     }
-    else if(ball_col == RACKET_1_CENTRE || RACKET_2_CENTRE)
+    else if(ball_col == RACKET_1_CENTRE || ball_col ==  RACKET_2_CENTRE)
     {
         state->pos_obj.ball_v_y = 0;
-        state->pos_obj.ball_pos_x *= -1;
+        state->pos_obj.ball_v_x *= -2;
         return;
     }
     else if(ball_col == RACKET_1_UPPER || ball_col == RACKET_2_UPPER)
     {
         state->pos_obj.ball_v_y = 1;
-        state->pos_obj.ball_v_x *= -1;
+        state->pos_obj.ball_v_x *= -2;
         return;
     }
     else if(ball_col == RACKET_1_BOTTOM || ball_col == RACKET_2_BOTTOM)
     {
         state->pos_obj.ball_v_y = -1;
-        state->pos_obj.ball_v_x *= -1;
+        state->pos_obj.ball_v_x *= -2;
         return;
     }
     else if(ball_col == PLAYER_1_HIT)
