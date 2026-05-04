@@ -15,7 +15,6 @@ int main(int argc, char* argv[])
     int sock_client;
     struct sockaddr_in serv_addr;
     struct hostent *hp;
-    configure_client(&sock_client, &serv_addr, &hp, argv[1], argv[2]);
     if(getenv("IN_XTERM") == NULL)
     {
         printf("Launching xterm...\n");  
@@ -25,6 +24,7 @@ int main(int argc, char* argv[])
         return 0;
     }
     configure_terminal();
+    configure_client(&sock_client, &serv_addr, &hp, argv[1], argv[2]);
     setcursorvisible(0);
     pthread_t draw_thread, network_thread;
     pthread_attr_t attr;
@@ -65,6 +65,7 @@ void* draw_handler(void* arg)
         draw_racket(pos.racketx[0], pos.rackety[0]);
         draw_racket(pos.racketx[1], pos.rackety[1]);
         fflush(stdout);
+        usleep(30000);
     }
 }
 

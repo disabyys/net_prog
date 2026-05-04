@@ -33,18 +33,20 @@ int main()
             clients[i].is_alive = true;
             clients[i].player_id = i+1;
             clients[i].socket = sock_client;
+            printf("Client %d connected (socket %d)\n", i, sock_client);
             break;
         }
     }
+    printf("Both clients connected! Starting game loop...\n");
+    fd_set set;
+    int max_fd;
+    struct timeval timeout;
     while(1)
     {
         if(!clients[0].is_alive || !clients[1].is_alive)
         {
             perror("One or more clients is disconnected");
-            close(clients[0].socket);
-            close(clients[1].socket);
-            close(sock_server);
-            exit(EXIT_FAILURE);
+            break;
         }
         for(int i=0; i<AMOUNT_PLAYERS; i++)
         {
@@ -54,34 +56,50 @@ int main()
                 continue;
             }
         }
+        FD_ZERO(&set);
         for(int i=0; i<AMOUNT_PLAYERS; i++)
         {
-            enum keys key;
-            if(recv(clients[i].socket, &key, sizeof(key), (intptr_t)NULL) == -1)
-            {  
-                perror("Select error\n");
-                clients[i].is_alive = false;
-                continue;
-            }
-            switch (key)
+            FD_SET(clients[i].socket, &set);
+        } 
+        max_fd = (clients[0].socket > clients[1].socket) ? clients[0].socket : clients[1].socket;
+        timeout.tv_sec = 0;
+        timeout.tv_usec = 10000;
+        if(select(max_fd + 1, &set, NULL, NULL, &timeout) < 0)
+        {
+            perror("Select error\n");
+            break;
+        }
+        for(int i=0; i<AMOUNT_PLAYERS; i++)
+        {
+            if(FD_ISSET(clients[i].socket, &set))
             {
-            case KEY_UP:
-                if(state.pos_obj.rackety[i] > 1 && state.pos_obj.rackety[i] <= ROWS - 1)
-                {
-                    state.pos_obj.rackety[i]++;
+                enum keys key;
+                if(recv(clients[i].socket, &key, sizeof(key), (intptr_t)NULL) == -1)
+                {  
+                    perror("Select error\n");
+                    clients[i].is_alive = false;
+                    continue;
                 }
-                break;
-            case KEY_DOWN:
-                if(state.pos_obj.rackety[i] >= 1 && state.pos_obj.rackety[i] < ROWS - 1)
+                switch (key)
                 {
-                    state.pos_obj.rackety[i]--;
+                    case KEY_UP:
+                        if(state.pos_obj.rackety[i] > 1 && state.pos_obj.rackety[i] <= ROWS - 1)
+                        {
+                            state.pos_obj.rackety[i]++;
+                        }
+                        break;
+                    case KEY_DOWN:
+                        if(state.pos_obj.rackety[i] >= 1 && state.pos_obj.rackety[i] < ROWS - 1)
+                        {
+                            state.pos_obj.rackety[i]--;
+                        }
+                        break;
+                    case KEY_ESC:
+                        clients[i].is_alive = false;
+                        continue;
+                    case SILENCE:
+                        break;
                 }
-                break;
-            case KEY_ESC:
-                clients[i].is_alive = false;
-                continue;
-            case SILENCE:
-                break;
             }
         }
         enum collisions collision = check_wall_collision(state);
@@ -89,11 +107,11 @@ int main()
         if(state.score1 == MAX_SCORE || state.score2 == MAX_SCORE)
         {
             printf("Player %d won!\n", (state.score1 == MAX_SCORE) ? 1 : 2);
-            close(clients[0].socket);
-            close(clients[1].socket);
-            close(sock_server);
-            exit(0);
+            break;
         }
     }
+    close(clients[0].socket);
+    close(clients[1].socket);
+    close(sock_server);
     return 0;
 }
