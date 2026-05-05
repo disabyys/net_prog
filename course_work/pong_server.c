@@ -50,10 +50,18 @@ int main()
         }
         for(int i=0; i<AMOUNT_PLAYERS; i++)
         {
-            if(send(clients[i].socket, &state.pos_obj, sizeof(state.pos_obj), (intptr_t)NULL) == -1)
+            if(send(clients[i].socket, &state.pos_obj, sizeof(state.pos_obj), MSG_DONTWAIT) == -1)
             {
-                clients[i].is_alive = false;
-                continue;
+                if(errno == EINTR || errno == EAGAIN || errno == EWOULDBLOCK)
+                {
+                    continue;
+                }
+                else
+                {
+                    perror("Send failed\n");
+                    clients[i].is_alive = false;
+                    continue;
+                }
             }
         }
         FD_ZERO(&set);
@@ -111,6 +119,7 @@ int main()
             printf("Player %d won!\n", (state.score1 == MAX_SCORE) ? 1 : 2);
             break;
         }
+        usleep(16666);
     }
     close(clients[0].socket);
     close(clients[1].socket);

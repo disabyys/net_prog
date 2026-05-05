@@ -127,6 +127,20 @@ void draw_racket(int racket_pos_x, int racket_pos_y)
     for(int i=0; i<3; i++)
     {
         gotoXY(racket_pos_x, racket_pos_y - 1 + i);
-        write(STDIN_FILENO, "a", 1);
+        write(STDOUT_FILENO, "a", 1);
+    }
+}
+
+void clear_cell(int pos_x, int pos_y)
+{
+    gotoXY(pos_x, pos_y);
+    write(STDOUT_FILENO, " ", 1);
+}
+
+void clear_racket(int racket_pos_x, int racket_pos_y)
+{
+    for(int i=0; i<3; i++)
+    {
+        clear_cell(racket_pos_x, racket_pos_y - 1 + i);
     }
 }

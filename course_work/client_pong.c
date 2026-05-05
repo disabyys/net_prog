@@ -1,7 +1,5 @@
 #include <client_func.h>
 
-struct position_objects_t pos;
-
 void* draw_handler(void* arg);
 void* network_handler(void* arg);
 
@@ -43,27 +41,41 @@ int main(int argc, char* argv[])
 void* draw_handler(void* arg)
 {
     int sock_client = (int)(intptr_t)arg;
-     struct winsize s;
+    int flags = fcntl(sock_client, F_GETFL, 0);
+    fcntl(sock_client, F_SETFL, flags | O_NONBLOCK);
+    struct winsize s;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &s);
     int left_pos_field = INDENT_HOR_WALLS;
     int right_pos_field = s.ws_col - INDENT_HOR_WALLS;
     int lower_pos_field = s.ws_row;
     int upper_pos_field = 0;
+    draw_box(left_pos_field, upper_pos_field, right_pos_field, lower_pos_field);
+    bool need_clear = false;
+    struct position_objects_t new_pos;
+    struct position_objects_t prev_pos;
     while(1)
     {
-        if(recv(sock_client, &pos, sizeof(pos), (intptr_t)NULL) == -1)
+        if(recv(sock_client, &new_pos, sizeof(new_pos), (intptr_t)NULL) == -1)
         {
             close(sock_client);
             pthread_exit(NULL);
         }
-        char buf[20];
-        sprintf(buf, "\033[2J\033[H");
-        write(STDOUT_FILENO, buf, strlen(buf));
-        draw_box(left_pos_field, upper_pos_field, right_pos_field, lower_pos_field);
-        draw_ball(pos.ball_pos_x, pos.ball_pos_y);
-        draw_racket(pos.racketx[0], pos.rackety[0]);
-        draw_racket(pos.racketx[1], pos.rackety[1]);
+        if(need_clear)
+        {
+            clear_cell(prev_pos.ball_pos_x, prev_pos.ball_pos_y);
+            clear_racket(prev_pos.racketx[0], prev_pos.rackety[0]);
+            clear_racket(prev_pos.racketx[1], prev_pos.rackety[1]);
+        }
+        draw_ball(new_pos.ball_pos_x, new_pos.ball_pos_y);
+        draw_racket(new_pos.racketx[0], new_pos.rackety[0]);
+        draw_racket(new_pos.racketx[1], new_pos.rackety[1]);
+        prev_pos = new_pos;
+        if(!need_clear)
+        {
+            need_clear = true;
+        }
         fflush(stdout);
+        usleep(16666);
     }
 }
 

@@ -6,6 +6,7 @@
 #include <pthread.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <fcntl.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/socket.h>
@@ -15,6 +16,7 @@
 #include <sys/ioctl.h>
 #include <netdb.h>
 #include <termios.h>
+#include <stdbool.h>
 
 #include <pong_shared.h>
 
@@ -29,5 +31,7 @@ void configure_terminal();
 void gotoXY(int x, int y);
 void draw_ball(int ball_pos_x, int ball_pos_y);
 void draw_racket(int racket_pos_x, int racket_pos_y);
+void clear_cell(int pos_x, int pos_y);
+void clear_racket(int racket_pos_x, int racket_pos_y);
 
 #endif
