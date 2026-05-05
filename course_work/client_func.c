@@ -45,36 +45,30 @@ int setcursorvisible(int value) {
 }
 
 int read_key(enum keys *key) {
-  char input;
-  struct timeval timeout;
-  timeout.tv_sec = 1;
-  timeout.tv_usec = 100;
-  fd_set set;
-  FD_ZERO(&set);
-  FD_SET(STDIN_FILENO, &set);   
-  size_t nread = select(STDIN_FILENO + 1, &set, NULL, NULL, &timeout);
-  if (nread == -1) {
-    return -1;
-  }
-  else if(nread == 0)
-  {
-    *key = SILENCE;
-    return 0;
-  }
-  read(STDIN_FILENO, &input, 1);
-  fflush(STDIN_FILENO);
-  if (input == 'w' || input == 'W') {
-    *key = KEY_UP;
-    return 0;
-  } else if (input == 's' || input == 'S') {
-    *key = KEY_DOWN;
-    return 0;
-  } else if (input == 0x18) // ESC
-  {
-    *key = KEY_ESC;
-    return 0;
-  }
-  return -1;
+    char input;
+    ssize_t n = read(STDIN_FILENO, &input, 1);
+    if(n == -1) return -1;
+    if(n == 0)   // timeout VTIME
+    {
+        *key = SILENCE;
+        return 0;
+    }
+    if (input == 'w' || input == 'W') {
+        *key = KEY_UP;
+        return 0;
+    } else if (input == 's' || input == 'S') {
+        *key = KEY_DOWN;
+        return 0;
+    } else if (input == 0x18) // ESC
+    {
+        *key = KEY_ESC;
+        return 0;
+    }
+    else
+    {
+        *key = SILENCE;
+        return 0;
+    }
 }
 
 void configure_client(int* sock_client, struct sockaddr_in* serv_addr, struct hostent** hp, char* host_name, char* port)
@@ -94,7 +88,6 @@ void configure_client(int* sock_client, struct sockaddr_in* serv_addr, struct ho
         perror("Connect failed"); 
         exit(EXIT_FAILURE);
     }
-    
 }
 
 void configure_terminal()
@@ -105,7 +98,7 @@ void configure_terminal()
     new_term = orig_term;
     new_term.c_lflag &= ~(ECHO | ICANON);
     new_term.c_cc[VMIN] = 0;
-    new_term.c_cc[VTIME] = 0.1;
+    new_term.c_cc[VTIME] = 2;
     tcsetattr(STDIN_FILENO, TCSANOW, &new_term);
 }
 
@@ -127,7 +120,7 @@ void draw_racket(int racket_pos_x, int racket_pos_y)
     for(int i=0; i<3; i++)
     {
         gotoXY(racket_pos_x, racket_pos_y - 1 + i);
-        write(STDOUT_FILENO, "a", 1);
+        write(STDOUT_FILENO, "#", 1);
     }
 }
 

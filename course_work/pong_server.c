@@ -71,7 +71,7 @@ int main()
         } 
         max_fd = (clients[0].socket > clients[1].socket) ? clients[0].socket : clients[1].socket;
         timeout.tv_sec = 0;
-        timeout.tv_usec = 10000;
+        timeout.tv_usec = 20000;
         if(select(max_fd + 1, &set, NULL, NULL, &timeout) < 0)
         {
             perror("Select error\n");
@@ -91,15 +91,15 @@ int main()
                 switch (key)
                 {
                     case KEY_UP:
-                        if(state.pos_obj.rackety[i] > 1 && state.pos_obj.rackety[i] <= ROWS - 1)
+                        if(state.pos_obj.rackety[i] > 2 && state.pos_obj.rackety[i] <= ROWS - 2)
                         {
-                            state.pos_obj.rackety[i]++;
+                            state.pos_obj.rackety[i]--;
                         }
                         break;
                     case KEY_DOWN:
-                        if(state.pos_obj.rackety[i] >= 1 && state.pos_obj.rackety[i] < ROWS - 1)
+                        if(state.pos_obj.rackety[i] >= 2 && state.pos_obj.rackety[i] < ROWS - 2)
                         {
-                            state.pos_obj.rackety[i]--;
+                            state.pos_obj.rackety[i]++;
                         }
                         break;
                     case KEY_ESC:
@@ -119,7 +119,6 @@ int main()
             printf("Player %d won!\n", (state.score1 == MAX_SCORE) ? 1 : 2);
             break;
         }
-        usleep(16666);
     }
     close(clients[0].socket);
     close(clients[1].socket);

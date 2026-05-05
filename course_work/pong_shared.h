@@ -12,11 +12,10 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define COLLS 199
-#define ROWS 51
-
-#define INDENT_HOR_WALLS 15
-#define OFFSET_RACKETS 15
+#define COLLS 140   
+#define ROWS 40  
+#define INDENT_HOR_WALLS 5  
+#define OFFSET_RACKETS 5 
 
 
 #define MAX_SCORE 10

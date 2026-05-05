@@ -41,8 +41,6 @@ int main(int argc, char* argv[])
 void* draw_handler(void* arg)
 {
     int sock_client = (int)(intptr_t)arg;
-    int flags = fcntl(sock_client, F_GETFL, 0);
-    fcntl(sock_client, F_SETFL, flags | O_NONBLOCK);
     struct winsize s;
     ioctl(STDOUT_FILENO, TIOCGWINSZ, &s);
     int left_pos_field = INDENT_HOR_WALLS;
@@ -55,11 +53,16 @@ void* draw_handler(void* arg)
     struct position_objects_t prev_pos;
     while(1)
     {
-        if(recv(sock_client, &new_pos, sizeof(new_pos), (intptr_t)NULL) == -1)
+        ssize_t n = recv(sock_client, &new_pos, sizeof(new_pos), 0);
+        if(n == -1) 
         {
-            close(sock_client);
-            pthread_exit(NULL);
+            if(errno == EAGAIN || errno == EWOULDBLOCK)
+            {
+                continue; 
+            }
+            break;  
         }
+        if(n == 0) break; 
         if(need_clear)
         {
             clear_cell(prev_pos.ball_pos_x, prev_pos.ball_pos_y);
@@ -75,8 +78,9 @@ void* draw_handler(void* arg)
             need_clear = true;
         }
         fflush(stdout);
-        usleep(16666);
     }
+    close(sock_client);
+    pthread_exit(NULL);
 }
 
 void* network_handler(void* arg)
@@ -87,8 +91,7 @@ void* network_handler(void* arg)
         enum keys key;
         if(read_key(&key) == -1)
         {
-            close(sock_client);
-            pthread_exit(NULL);
+            break;
         }
         if(send(sock_client, &key, sizeof(key), (intptr_t)NULL) == -1)
         {
@@ -97,9 +100,10 @@ void* network_handler(void* arg)
         }
         if(key == KEY_ESC)
         {
-            close(sock_client);
-            pthread_exit(NULL);
+            break;
         }
+        close(sock_client);
+        pthread_exit(NULL);
     }
 }
 

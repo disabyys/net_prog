@@ -5,7 +5,7 @@ void init_field(struct game_state* state, int score1, int score2)
     int ball_v_x = (rand() % 2 == 0) ? -2 : 2;
     int ball_v_y = (rand() % 2 == 0) ? -1 : 1;
     state->pos_obj.ball_pos_x = COLLS / 2;
-    state->pos_obj.ball_pos_y = 1 + (rand() % (ROWS - 1));
+    state->pos_obj.ball_pos_y = 1 + ((rand() % ROWS) - 1);
     state->pos_obj.ball_v_x = ball_v_x;
     state->pos_obj.ball_v_y = ball_v_y;
     state->pos_obj.racketx[0] = INDENT_HOR_WALLS + OFFSET_RACKETS;
