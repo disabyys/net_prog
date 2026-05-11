@@ -1,11 +1,11 @@
 #include <client_func.h>
 
-void* draw_handler(void* arg);
-void* network_handler(void* arg);
+void *draw_handler(void *arg);
+void *network_handler(void *arg);
 
-int main(int argc, char* argv[])
+int main(int argc, char *argv[])
 {
-    if(argc != 3)
+    if (argc != 3)
     {
         puts("Undefined command. Usage: clie [server IP] [server port]");
         exit(EXIT_FAILURE);
@@ -13,9 +13,9 @@ int main(int argc, char* argv[])
     int sock_client;
     struct sockaddr_in serv_addr;
     struct hostent *hp;
-    if(getenv("IN_XTERM") == NULL)
+    if (getenv("IN_XTERM") == NULL)
     {
-        printf("Launching xterm...\n");  
+        printf("Launching xterm...\n");
         char cmd[256];
         snprintf(cmd, sizeof(cmd), "xterm -ti vt100 -font fixed -geometry %dx%d -e env IN_XTERM=1 %s %s %s", COLLS, ROWS, argv[0], argv[1], argv[2]);
         system(cmd);
@@ -27,8 +27,8 @@ int main(int argc, char* argv[])
     pthread_t draw_thread, network_thread;
     pthread_attr_t attr;
     pthread_attr_init(&attr);
-    pthread_create(&network_thread, &attr, (void*)network_handler, (void*)(intptr_t)sock_client);
-    pthread_create(&draw_thread, &attr, (void*)draw_handler,  (void*)(intptr_t)sock_client);
+    pthread_create(&network_thread, &attr, (void *)network_handler, (void *)(intptr_t)sock_client);
+    pthread_create(&draw_thread, &attr, (void *)draw_handler, (void *)(intptr_t)sock_client);
     pthread_join(network_thread, NULL);
     pthread_join(draw_thread, NULL);
     write(STDOUT_FILENO, "\e(B", strlen("\e(B"));
@@ -38,32 +38,31 @@ int main(int argc, char* argv[])
     return 0;
 }
 
-void* draw_handler(void* arg)
+void *draw_handler(void *arg)
 {
     int sock_client = (int)(intptr_t)arg;
-    struct winsize s;
-    ioctl(STDOUT_FILENO, TIOCGWINSZ, &s);
     int left_pos_field = INDENT_HOR_WALLS;
-    int right_pos_field = s.ws_col - INDENT_HOR_WALLS;
-    int lower_pos_field = s.ws_row;
-    int upper_pos_field = 0;
+    int right_pos_field = COLLS - INDENT_HOR_WALLS;
+    int lower_pos_field = INDENT_VERT_WALLS + ROWS - 1;
+    int upper_pos_field = INDENT_VERT_WALLS;
     draw_box(left_pos_field, upper_pos_field, right_pos_field, lower_pos_field);
     bool need_clear = false;
     struct position_objects_t new_pos;
     struct position_objects_t prev_pos;
-    while(1)
+    while (1)
     {
         ssize_t n = recv(sock_client, &new_pos, sizeof(new_pos), 0);
-        if(n == -1) 
+        if (n == -1)
         {
-            if(errno == EAGAIN || errno == EWOULDBLOCK)
+            if (errno == EAGAIN || errno == EWOULDBLOCK)
             {
-                continue; 
+                continue;
             }
-            break;  
+            break;
         }
-        if(n == 0) break; 
-        if(need_clear)
+        if (n == 0)
+            break;
+        if (need_clear)
         {
             clear_cell(prev_pos.ball_pos_x, prev_pos.ball_pos_y);
             clear_racket(prev_pos.racketx[0], prev_pos.rackety[0]);
@@ -73,7 +72,7 @@ void* draw_handler(void* arg)
         draw_racket(new_pos.racketx[0], new_pos.rackety[0]);
         draw_racket(new_pos.racketx[1], new_pos.rackety[1]);
         prev_pos = new_pos;
-        if(!need_clear)
+        if (!need_clear)
         {
             need_clear = true;
         }
@@ -83,27 +82,26 @@ void* draw_handler(void* arg)
     pthread_exit(NULL);
 }
 
-void* network_handler(void* arg)
+void *network_handler(void *arg)
 {
     int sock_client = (int)(intptr_t)arg;
-    while(1)
+    while (1)
     {
         enum keys key;
-        if(read_key(&key) == -1)
+        if (read_key(&key) == -1)
         {
             break;
         }
-        if(send(sock_client, &key, sizeof(key), (intptr_t)NULL) == -1)
+        if (send(sock_client, &key, sizeof(key), (intptr_t)NULL) == -1)
         {
             close(sock_client);
             pthread_exit(NULL);
         }
-        if(key == KEY_ESC)
+        if (key == KEY_ESC)
         {
             break;
         }
-        close(sock_client);
-        pthread_exit(NULL);
     }
+    close(sock_client);
+    pthread_exit(NULL);
 }
-

@@ -12,17 +12,24 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#define COLLS 140   
-#define ROWS 40  
-#define INDENT_HOR_WALLS 5  
-#define OFFSET_RACKETS 5 
-
+#define COLLS 150
+#define ROWS 50
+#define INDENT_VERT_WALLS 3
+#define INDENT_HOR_WALLS 5
+#define OFFSET_RACKETS 20
 
 #define MAX_SCORE 10
 
-enum keys { KEY_UP, KEY_DOWN, KEY_ESC, SILENCE };
+enum keys
+{
+  KEY_UP,
+  KEY_DOWN,
+  KEY_ESC,
+  SILENCE
+};
 
-struct position_objects_t {
+struct position_objects_t
+{
 
   int ball_pos_x, ball_pos_y;
   int ball_v_x, ball_v_y;
